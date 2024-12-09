@@ -15,8 +15,9 @@
 void	ffree(void **mem)
 {
 	int	i = -1;
+	
 	while (mem[++i])
-		free(mem[i]);
+			free(mem[i]);
 	free(mem[i]);
 	free(mem);
 }
@@ -250,7 +251,7 @@ void	place_antinode_pair(char **antinodes_map, int *coord1, int* coord2)
 		j = coord1[1] - abs(coord1[1] - coord2[1]);
 	else
 		j = coord1[1] + abs(coord1[1] - coord2[1]);
-	if (i > -1 && j > -1)
+	if (i > -1 && j > -1 && i < imax && j < jmax)
 		antinodes_map[i][j] = '#';
 	if (coord2[0] < coord1[0])
 		i = coord2[0] - abs(coord1[0] - coord2[0]);
@@ -260,7 +261,7 @@ void	place_antinode_pair(char **antinodes_map, int *coord1, int* coord2)
 		j = coord2[1] - abs(coord1[1] - coord2[1]);
 	else
 		j = coord2[1] + abs(coord1[1] - coord2[1]);
-	if (i < imax && j < jmax)
+	if (i < imax && j < jmax && i > -1 && j > -1)
 		antinodes_map[i][j] = '#';
 }
 
@@ -292,7 +293,6 @@ int	main()
 	input = get_input("input2");
 	antinodes_map = sstrdup(input);
 	mark_antinodes(input, antinodes_map);
-	//ddisplay(antinodes_map);
 	ffree((void **)input);
 	rt = 0;
 	i = -1;
@@ -302,6 +302,6 @@ int	main()
 			if (antinodes_map[i][j] == '#')
 				rt++;
 	}
-	//ffree((void **)antinodes_map);
 	printf("%i\n", rt);
+	ffree((void **)antinodes_map);
 }
