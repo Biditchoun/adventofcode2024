@@ -340,7 +340,7 @@ int	main()
 	int	i, j, blinks;
 	long	rt, *stone_line, **common_cases;
 
-	blinks = 40;
+	blinks = 25;
 	input = get_simple_input("input2");
 	stone_line = convert_to_longs(input);
 	free((void *)input);
@@ -349,7 +349,7 @@ int	main()
 	while (++i < blinks - 40)
 		stone_line = blink(stone_line);
 	rt = i = 0;
-	while (++i < min(40, blinks)) {
+	while (++i < min(40, blinks+1)) {
 //		longplay(stone_line);
 //		printf("%li\n", rt);
 		j = -1;
