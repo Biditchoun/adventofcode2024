@@ -227,7 +227,7 @@ int	nb_of_digits(long nb)
 	return (1 + nb_of_digits(nb/10));
 }
 
-long	power(int nb, int p)
+int	power(int nb, int p)
 {
 	int	rt;
 
@@ -242,6 +242,11 @@ long	power(int nb, int p)
 }
 
 //Code of the day
+//This was my first idea for solving the puzzle, and I am pretty sure the thinking on how it should behave is completely valid
+//It basically re-uses the code from the first part, except it pre-determines the result of common numbers to make it run faster
+//It's pretty ugly, but I really wanted to make it work ; alas, I have written something wrong somewhere and I can't find where
+//This means I am "one off" wherever there are 40 blinks or more on some inputs
+//I am still leaving this code in as a tribute to my efforts to make it work
 void	separate(long *rt, int i, long nb)
 {
 	int	dig, dig2;
@@ -342,31 +347,33 @@ int	main()
 
 	blinks = 40;
 	input = get_simple_input("input2");
+	printf("input : %s", input);
 	stone_line = convert_to_longs(input);
 	free((void *)input);
 	common_cases = determine_common_cases();
 	i = -1;
 	while (++i < blinks - 40)
 		stone_line = blink(stone_line);
-	rt = i = 0;
-	while (++i < min(40, blinks)) {
-//		longplay(stone_line);
-//		printf("%li\n", rt);
+	i = rt = 0;
+	while (++i < min(40, blinks+1)) {
 		j = -1;
+//		longplay(stone_line);
 		while (stone_line[++j] > LONG_MIN) {
 			if (stone_line[j] < 10) {
 				rt += common_cases[stone_line[j]][min(blinks, 40)+1-i];
+//				printf("+%li ", common_cases[stone_line[j]][min(blinks, 40)+1-i]);
 				stone_line[j] = -1;
 			}
-//			printf("%li %li\n", stone_line[j], rt);
 		}
+//		printf("\n");
 		stone_line = shorten_line(stone_line);
 		stone_line = blink(stone_line);
 	}
+//	longplay(stone_line);
 	ffree((void **)common_cases);
 	i = -1;
 	while (stone_line[++i] > LONG_MIN)
 		rt++;
 	free(stone_line);
-	printf("%li\n", rt);
+	printf("%i blinks : %li\n", blinks, rt);
 }

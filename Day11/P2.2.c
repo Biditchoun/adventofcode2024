@@ -242,7 +242,26 @@ long	power(int nb, int p)
 }
 
 //Code of the day
-void	separate(long *rt, int i, long nb)
+//It took me some time to get the motivation to work on it again after I didn't manage to make my first idea work, but it's there
+long	**create_stones_list(long *line)
+{
+	long	**rt;
+	int	i = 0;
+
+	while (line[i] > -1)
+		i++;
+	rt = malloc(sizeof(long *) * (i+1));
+	i = -1;
+	while (line[++i] > -1) {
+		rt[i] = malloc(sizeof(long)*2);
+		rt[i][0] = line[i];
+		rt[i][1] = 1;
+	}
+	rt[i] = NULL;
+	return (rt);
+}
+
+void	separate(long *rt, long nb)
 {
 	int	dig, dig2;
 	long	buff;
@@ -254,53 +273,110 @@ void	separate(long *rt, int i, long nb)
 		buff += nb%10 * power(10, dig2);
 		nb /= 10;
 	}
-	rt[i] = nb;
-	rt[i+1] = buff;
+	rt[0] = nb;
+	rt[1] = buff;
 }
 
-long	*blink(long *stone_line)
+long	**blink(long **stones_list)
 {
-	int	i, nb_of_nb;
-	long	*rt;
+	int	i, j;
+	long	*buff, **rt;
 
-	nb_of_nb = 0;
+	j = 0;
 	i = -1;
-	while (stone_line[++i] > LONG_MIN) {
-		nb_of_nb++;
-		if (!(nb_of_digits(stone_line[i])%2))
-			nb_of_nb++;
+	while (stones_list[++i])
+		if ( !(nb_of_digits(stones_list[i][0])%2) )
+			j++;
+	rt = malloc(sizeof(long *) * (i+j+1));
+
+	buff = malloc(sizeof(long)*2);
+	j = 0;
+	i = -1;
+	while (stones_list[++i]) {
+		rt[i+j] = malloc(sizeof(long)*2);
+		if (!stones_list[i][0])
+			rt[i+j][0] = 1;
+		else if (nb_of_digits(stones_list[i][0]) % 2)
+			rt[i+j][0] = stones_list[i][0] * 2024;
+		else {
+			separate(buff, stones_list[i][0]);
+			rt[i+j][0] = buff[0];
+			rt[i+j][1] = stones_list[i][1];
+			j++;
+			rt[i+j] = malloc(sizeof(long)*2);
+			rt[i+j][0] = buff[1];
+		}
+		rt[i+j][1] = stones_list[i][1];
 	}
-	rt = malloc(sizeof(long) * (nb_of_nb+1));
-	rt[nb_of_nb] = LONG_MIN;
-	while (--i > -1) {
-		nb_of_nb--;
-		if (!stone_line[i])
-			rt[nb_of_nb] = 1;
-		else if (nb_of_digits(stone_line[i]) % 2)
-			rt[nb_of_nb] = stone_line[i] * 2024;
-		else
-			separate(rt, --nb_of_nb, stone_line[i]);
+	rt[i+j] = NULL;
+	free((void *)buff);
+	ffree((void **)stones_list);
+	return (rt);
+}
+
+long	**simplify(long **stones_list)
+{
+	long	**rt;
+	int	i, j, duplicates;
+
+	duplicates = 0;
+	i = -1;
+	while (stones_list[++i]) {
+		j = -1;
+		while (++j < i) {
+			if (stones_list[i][0] == stones_list[j][0]) {
+				duplicates++;
+				break ;
+			}
+		}
 	}
-	free(stone_line);
+	rt = malloc(sizeof(long *) * (i - duplicates + 1));
+	
+	duplicates = 0;
+	i = -1;
+	while (stones_list[++i]) {
+		j = -1;
+		while (++j < i) {
+			if (stones_list[i][0] == stones_list[j][0]) {
+				duplicates++;
+				j = 0;
+				while (rt[j][0] != stones_list[i][0])
+					j++;
+				rt[j][1] += stones_list[i][1];
+				break ;
+			}
+		}
+		if (i == j) {
+			rt[i - duplicates] = malloc(sizeof(long)*2);
+			rt[i - duplicates][0] = stones_list[i][0];
+			rt[i - duplicates][1] = stones_list[i][1];
+		}
+	}
+	rt[i - duplicates] = NULL;
+	ffree((void **)stones_list);
 	return (rt);
 }
 
 int	main()
 {
 	char	*input;
-	long	*stone_line;
-	int	i;
+	int	i, blinks;
+	long	rt, *stone_line, **stones_list;
 
+	blinks = 75;
 	input = get_simple_input("input2");
 	stone_line = convert_to_longs(input);
 	free((void *)input);
+	stones_list = create_stones_list(stone_line);
+	free((void *)stone_line);
 	i = -1;
-	while (++i < 25)
-		stone_line = blink(stone_line);
-	printf("%i blinks : ", i);
-	i = 0;
-	while (stone_line[i] > LONG_MIN)
-		i++;
-	free(stone_line);
-	printf("%i\n", i);
+	while (++i < blinks) {
+		stones_list = blink(stones_list);
+		stones_list = simplify(stones_list);
+	}
+	rt = 0;
+	i = -1;
+	while (stones_list[++i])
+		rt += stones_list[i][1];
+	printf("%i blinks : %li\n", blinks, rt);
 }
